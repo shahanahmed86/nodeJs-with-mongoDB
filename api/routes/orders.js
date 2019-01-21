@@ -36,6 +36,7 @@ route.post('/', (req, res) => {
 route.get('/', (req, res) => {
     Order.find()
         .select('_id product quantity')
+        .populate('product', '_id name price')
         .then(docs => {
             if (docs.length > 0) {
                 res.json({
@@ -74,6 +75,7 @@ route.get('/', (req, res) => {
 route.get('/:id', (req, res) => {
     Order.findById(req.params.id)
         .select('_id product quantity')
+        .populate('product', '_id name price')
         .exec()
         .then(doc => {
             if (!doc) return res.json({

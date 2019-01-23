@@ -2,6 +2,7 @@ const express = require('express');
 const route = express.Router();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 route.post('/signup', (req, res) => {
@@ -44,38 +45,44 @@ route.post('/signup', (req, res) => {
         });
 });
 
-route.delete('/:id', (req, res) => {
-    User.deleteOne({
-            _id: req.params.id
+route.post('/login', (req, res) => {
+    User.findOne({
+            email: req.body.email
         })
         .exec()
-        .then(result => {
-            res.json({
-                message: "User Deleted",
-                result
+        .then(user => {
+            if (!user) return res.json({
+                message: "Authentication Failed",
+                user
             });
-        })
-        .catch(err => {
-            res.json({
-                error: err
-            });
-        });
-});
+            bcrypt.compare(req.body.password, user.password, (err, result) => {
+                if (err) return res.json({
+                    message: "Authentication Failed",
+                    err,
+                });
+                if (!result) return res.json({
+                    message: "Authentication Failed",
+                    result
+                });
+                const token = jwt.sign({
+                    userId: user._id,
+                    email: user.email,
+                    password: user.password,
 
-route.get('/', (req, res) => {
-    User.find()
-        .exec()
-        .then(docs => {
-            res.json({
-                message: "User data is fetched",
-                docs
-            });
+                }, 'secret', {
+                    expiresIn: '1h'
+                });
+                res.json({
+                    message: "Logged in Successfull",
+                    token
+                });
+            })
         })
         .catch(err => {
             res.json({
                 error: err
-            });
-        });
+            })
+        })
 })
 
 module.exports = route;

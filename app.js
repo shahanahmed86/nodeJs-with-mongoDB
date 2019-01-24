@@ -15,8 +15,10 @@ const {
 } = process.env;
 const url = `mongodb://${user}:${password}@ds157654.mlab.com:57654/mongoose-practice`;
 mongoose.connect(url, {
-    useNewUrlParser: true
-});
+        useNewUrlParser: true
+    })
+    .then(() => console.log('mlab is connected...'))
+    .catch(err => console.log(err));
 
 app.use(morgan('dev'));
 
